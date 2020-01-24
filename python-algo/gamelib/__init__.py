@@ -21,7 +21,7 @@ util.py contains a small handful of functions that help with communication, incl
 
 from .algocore import AlgoCore
 from .util import debug_write
-from .game_state import GameState
+from .game_state import GameState, is_stationary
 from .unit import GameUnit
 from .game_map import GameMap
 

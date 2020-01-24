@@ -369,6 +369,7 @@ class GameState:
         if type(locations[0]) == int:
             locations = [locations]
         spawned_units = 0
+        locations_success = []
         for location in locations:
             for i in range(num):
                 if self.can_spawn(unit_type, location, 1):
@@ -381,10 +382,11 @@ class GameState:
                         self._build_stack.append((unit_type, x, y))
                     else:
                         self._deploy_stack.append((unit_type, x, y))
+                    locations_success.append(location)
                     spawned_units += 1
                 else:
                     break
-        return spawned_units
+        return spawned_units, locations_success
 
     def attempt_remove(self, locations):
         """Attempts to remove existing friendly firewalls in the given locations.
