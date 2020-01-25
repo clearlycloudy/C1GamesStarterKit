@@ -1,3 +1,3 @@
 #!/bin/bash
 
-zip -r esrever.zip python-algo
+zip -r zzz.zip python-algo

@@ -1,3 +1,12 @@
+import gamelib
+
+import numpy as np
+import torch
+from scipy import fftpack
+from scipy import signal
+from scipy import misc
+# from sklearn import mixture
+
 def div(a,b):
     if b != 0:
         value = float(a) / float(b)
@@ -42,4 +51,94 @@ def create_line(start, end):
             prev = y
 
         return loc
-        
+    
+# # from scipy documentation:
+# def gaussian(self, height, center_x, center_y, width_x, width_y, rotation):
+#         """Returns a gaussian function with the given parameters"""
+#         width_x = float(width_x)
+#         width_y = float(width_y)
+
+#         rotation = np.deg2rad(rotation)
+#         center_x = center_x * np.cos(rotation) - center_y * np.sin(rotation)
+#         center_y = center_x * np.sin(rotation) + center_y * np.cos(rotation)
+
+#         def rotgauss(x,y):
+#             xp = x * np.cos(rotation) - y * np.sin(rotation)
+#             yp = x * np.sin(rotation) + y * np.cos(rotation)
+#             g = height*np.exp(
+#                 -(((center_x-xp)/width_x)**2+
+#                   ((center_y-yp)/width_y)**2)/2.)
+#             return g
+#         return rotgauss
+
+# def moments(self, data):
+#     """Returns (height, x, y, width_x, width_y)
+#     the gaussian parameters of a 2D distribution by calculating its
+#     moments """
+#     total = data.sum()
+#     X, Y = np.indices(data.shape)
+#     x = (X*data).sum()/total
+#     y = (Y*data).sum()/total
+#     col = data[:, int(y)]
+#     width_x = np.sqrt(abs((np.arange(col.size)-y)**2*col).sum()/col.sum())
+#     row = data[int(x), :]
+#     width_y = np.sqrt(abs((np.arange(row.size)-x)**2*row).sum()/row.sum())
+#     height = data.max()
+#     return height, x, y, width_x, width_y, 0.0
+
+    
+# def fitgaussian(self, data):
+#     """Returns (height, x, y, width_x, width_y)
+#     the gaussian parameters of a 2D distribution found by a fit"""
+#     params = self.moments(data)
+#     errorfunction = lambda p: np.ravel(self.gaussian(*p)(*np.indices(data.shape)) - data)
+#     p, success = scipy.optimize.leastsq(errorfunction, params)
+#     return p
+
+def create_gaussian_distr(map2d):
+
+    samples = []
+    for x in range(map2d.shape[0]):
+        for y in range(map2d.shape[1]):
+            for i in range(int(map2d[x,y])):
+                samples.append([x,y])
+
+    if len(samples)>3:
+        samp = np.zeros((len(samples),2))
+        for i in range(len(samples)):
+            samp[i,:] = [ samples[i][0], samples[i][1] ]
+
+        #calc mean and covariance from data
+        n = samp.shape[0]
+        cov = np.cov(samp, y=None, rowvar=False, bias=False, ddof=None, fweights=None, aweights=None)
+        noise = np.random.normal() * 0.2
+        cov = cov + noise
+        means = np.sum(samp, axis=0) / n
+
+        # gamelib.debug_write(means)
+        # gamelib.debug_write(cov)
+
+        # #1 component in mixture for now
+        # commented out since sklearn is not supported in online mode
+        # gmm = mixture.GaussianMixture(n_components=1, covariance_type='full').fit(samp)
+                    
+        # gamelib.debug_write("samp length: {}".format(len(samples)))
+        # gamelib.debug_write("gmm means:")
+        # gamelib.debug_write(gmm.means_)
+        # gamelib.debug_write("gmm covs:")
+        # gamelib.debug_write(gmm.covariances_)
+
+        # X = gmm.sample(n_samples=1)
+        # return gmm
+        return means, cov
+    else:
+        return None
+
+def generate_sample_from_gaussian(gmm, samples=1):
+    output = []
+    for j in range(samples):
+        # just take the first component of the gaussian fixture for now
+        # X = np.random.multivariate_normal(gmm.means_[0], gmm.covariances_[0])
+        X = np.random.multivariate_normal(gmm[0], gmm[1])
+        output.append(X)
+    return output
